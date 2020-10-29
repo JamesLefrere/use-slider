@@ -1,120 +1,120 @@
-import { cloneElement, ReactElement, useEffect } from "react";
-import ReactDOM from "react-dom";
+import { cloneElement, ReactElement, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 
 function initPagination<T extends HTMLElement>(
   container: T,
   pagination: true | ((index: number) => ReactElement) | ReactElement,
   curIndex: number,
-  moveTo: (index: number) => void
+  moveTo: (index: number) => void,
 ): void {
   const oldPaginationNode = container.querySelector(
-    ".slider-pagination-container"
-  );
+    '.slider-pagination-container',
+  )
 
-  if (oldPaginationNode) container.removeChild(oldPaginationNode);
+  if (oldPaginationNode) container.removeChild(oldPaginationNode)
 
-  const paginationContainer = document.createElement("div");
-  paginationContainer.classList.add("slider-pagination-container");
-  const paginationList = [];
+  const paginationContainer = document.createElement('div')
+  paginationContainer.classList.add('slider-pagination-container')
+  const paginationList = []
 
   for (
     let i = 0;
-    i < container.querySelectorAll(".slider-slide").length;
+    i < container.querySelectorAll('.slider-slide').length;
     i += 1
   ) {
     if (pagination === true) {
-      const paginationItem = document.createElement("span");
-      paginationItem.classList.add("slider-pagination-dot");
-      paginationItem.classList.add("slider-pagination-dot__default");
+      const paginationItem = document.createElement('span')
+      paginationItem.classList.add('slider-pagination-dot')
+      paginationItem.classList.add('slider-pagination-dot__default')
 
-      if (curIndex === i) paginationItem.classList.add("active");
+      if (curIndex === i) paginationItem.classList.add('active')
 
-      paginationItem.addEventListener("click", () => moveTo(i));
-      paginationContainer.appendChild(paginationItem);
+      paginationItem.addEventListener('click', () => moveTo(i))
+      paginationContainer.appendChild(paginationItem)
     } else {
       const renderedComponent =
-        typeof pagination === "function" ? pagination(i) : pagination;
+        typeof pagination === 'function' ? pagination(i) : pagination
       paginationList.push(
         cloneElement(renderedComponent, {
           onClick: () => moveTo(i),
           className: `${
             renderedComponent.props.className
               ? renderedComponent.props.className
-              : ""
-          } slider-pagination-dot ${curIndex === i ? "active" : ""}`
-        })
-      );
+              : ''
+          } slider-pagination-dot ${curIndex === i ? 'active' : ''}`,
+        }),
+      )
     }
   }
 
   if (paginationList.length) {
-    ReactDOM.render(paginationList, paginationContainer);
+    ReactDOM.render(paginationList, paginationContainer)
   }
 
-  container.appendChild(paginationContainer);
+  container.appendChild(paginationContainer)
 }
 
 export default function usePagination<T extends HTMLElement>(options: {
-  container: T | null;
-  pagination: boolean | ((index: number) => ReactElement) | ReactElement;
-  curIndex: number;
-  moveTo: (index: number) => void;
+  container: T | null
+  pagination: boolean | ((index: number) => ReactElement) | ReactElement
+  curIndex: number
+  moveTo: (index: number) => void
 }): void {
-  const { container, pagination, curIndex, moveTo } = options;
+  const { container, pagination, curIndex, moveTo } = options
 
   useEffect(() => {
-    if (!container || !pagination) return;
+    if (!container || !pagination) return
 
-    const observer = new MutationObserver(mutationList => {
+    const observer = new MutationObserver((mutationList) => {
       if (
         mutationList.every(
-          mutationRecord =>
+          (mutationRecord) =>
             Array.from(mutationRecord.addedNodes).every(
-              node =>
+              (node) =>
                 !(node as HTMLElement).classList.contains(
-                  "slider-pagination-container"
-                )
+                  'slider-pagination-container',
+                ),
             ) &&
             Array.from(mutationRecord.removedNodes).every(
-              node =>
+              (node) =>
                 !(node as HTMLElement).classList.contains(
-                  "slider-pagination-container"
-                )
-            )
+                  'slider-pagination-container',
+                ),
+            ),
         )
       ) {
-        initPagination(container, pagination, curIndex, moveTo);
+        initPagination(container, pagination, curIndex, moveTo)
       }
-    });
+    })
 
     observer.observe(container, {
       childList: true,
       attributes: false,
-      subtree: false
-    });
+      subtree: false,
+    })
 
-    initPagination(container, pagination, curIndex, moveTo);
+    initPagination(container, pagination, curIndex, moveTo)
 
-    return () => observer.disconnect();
-  }, [container, curIndex, pagination, moveTo]);
+    return () => observer.disconnect()
+  }, [container, curIndex, pagination, moveTo])
 
   useEffect(() => {
-    if (!container || !pagination) return;
+    if (!container || !pagination) return
 
     const paginationContainer = container.querySelector(
-      ".slider-pagination-container"
-    );
+      '.slider-pagination-container',
+    )
 
-    if (!paginationContainer) return;
+    if (!paginationContainer) return
 
     for (let i = 0; i < paginationContainer.children.length; i += 1) {
-      const child = paginationContainer.children[i] as HTMLElement;
+      const child = paginationContainer.children[i] as HTMLElement
 
       if (i === curIndex) {
-        child.classList.add("active");
+        child.classList.add('active')
       } else {
-        child.classList.remove("active");
+        child.classList.remove('active')
       }
     }
-  }, [container, curIndex, pagination]);
+  }, [container, curIndex, pagination])
 }

@@ -1,14 +1,14 @@
 export default function move<T extends HTMLElement>(options: {
-  slidesPerView: number;
-  slideWidth: number;
-  container: T;
-  animate?: boolean;
-  speed: number;
-  deltaX: number;
-  leftStart: number;
-  rightStart: number;
-  curIndex: number;
-  loop: boolean;
+  slidesPerView: number
+  slideWidth: number
+  container: T
+  animate?: boolean
+  speed: number
+  deltaX: number
+  leftStart: number
+  rightStart: number
+  curIndex: number
+  loop: boolean
 }): void {
   const {
     slidesPerView,
@@ -20,61 +20,61 @@ export default function move<T extends HTMLElement>(options: {
     leftStart,
     deltaX,
     rightStart,
-    curIndex
-  } = options;
+    curIndex,
+  } = options
 
-  if (!container) return;
+  if (!container) return
 
-  let startTime: number;
+  let startTime: number
 
-  const childrenNum = container.querySelectorAll(".slider-slide").length;
+  const childrenNum = container.querySelectorAll('.slider-slide').length
 
   function moveAnimation(timestamp: number) {
-    if (!startTime) startTime = timestamp;
+    if (!startTime) startTime = timestamp
 
-    const elapsed = animate ? Math.min((timestamp - startTime) / speed, 1) : 1;
+    const elapsed = animate ? Math.min((timestamp - startTime) / speed, 1) : 1
 
-    let transfromLeft = leftStart + elapsed * deltaX;
+    let transfromLeft = leftStart + elapsed * deltaX
 
     while (transfromLeft <= -childrenNum * slideWidth && loop)
-      transfromLeft += childrenNum * slideWidth;
-    while (transfromLeft > 0 && loop) transfromLeft -= childrenNum * slideWidth;
+      transfromLeft += childrenNum * slideWidth
+    while (transfromLeft > 0 && loop) transfromLeft -= childrenNum * slideWidth
 
-    const transformStrLeft = `translateX(${transfromLeft}px)`;
+    const transformStrLeft = `translateX(${transfromLeft}px)`
 
     let transformRight =
-      (rightStart + elapsed * deltaX) % (childrenNum * slideWidth);
+      (rightStart + elapsed * deltaX) % (childrenNum * slideWidth)
 
-    while (transformRight < 0) transformRight += childrenNum * slideWidth;
+    while (transformRight < 0) transformRight += childrenNum * slideWidth
 
-    const transformStrRight = `translateX(${transformRight}px)`;
+    const transformStrRight = `translateX(${transformRight}px)`
 
     for (let i = 0; i < childrenNum; i += 1) {
-      const child = container.children[i] as HTMLElement;
+      const child = container.children[i] as HTMLElement
 
       if (loop) {
         if (deltaX > 0) {
           if (i >= curIndex + slidesPerView - childrenNum) {
-            child.style.transform = transformStrLeft;
+            child.style.transform = transformStrLeft
           } else {
-            child.style.transform = transformStrRight;
+            child.style.transform = transformStrRight
           }
         } else {
           if (i >= curIndex) {
-            child.style.transform = transformStrLeft;
+            child.style.transform = transformStrLeft
           } else {
-            child.style.transform = transformStrRight;
+            child.style.transform = transformStrRight
           }
         }
       } else {
-        child.style.transform = transformStrLeft;
+        child.style.transform = transformStrLeft
       }
     }
 
     if (elapsed < 1) {
-      window.requestAnimationFrame(moveAnimation);
+      window.requestAnimationFrame(moveAnimation)
     }
   }
 
-  window.requestAnimationFrame(moveAnimation);
+  window.requestAnimationFrame(moveAnimation)
 }

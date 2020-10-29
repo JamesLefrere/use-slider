@@ -1,46 +1,46 @@
-import { SetStateAction, useEffect } from "react";
+import { SetStateAction, useEffect } from 'react'
 
 function init<T extends HTMLElement>(container: T, slidesPerView: number) {
-  container.classList.add("slider-container");
+  container.classList.add('slider-container')
 
   for (let i = 0; i < container.children.length; i += 1) {
-    const child = container.children[i] as HTMLElement;
+    const child = container.children[i] as HTMLElement
 
     if (
-      child.classList.contains("slider-pagination-container") ||
-      child.classList.contains("slider-navigation-container")
+      child.classList.contains('slider-pagination-container') ||
+      child.classList.contains('slider-navigation-container')
     )
-      continue;
+      continue
 
-    child.classList.add("slider-slide");
+    child.classList.add('slider-slide')
 
-    child.style.width = `${(1 / slidesPerView) * 100}%`;
+    child.style.width = `${(1 / slidesPerView) * 100}%`
   }
 }
 
 export default function useInit<T extends HTMLElement>(options: {
-  container: T | null;
-  setCurIndex: (value: SetStateAction<number>) => void;
-  slidesPerView: number;
+  container: T | null
+  setCurIndex: (value: SetStateAction<number>) => void
+  slidesPerView: number
 }): void {
-  const { container, setCurIndex, slidesPerView } = options;
+  const { container, setCurIndex, slidesPerView } = options
 
   useEffect(() => {
-    if (!container) return;
-    setCurIndex(0);
+    if (!container) return
+    setCurIndex(0)
 
     const observer = new MutationObserver(() => {
-      init(container, slidesPerView);
-    });
+      init(container, slidesPerView)
+    })
 
     observer.observe(container, {
       childList: true,
       attributes: false,
-      subtree: false
-    });
+      subtree: false,
+    })
 
-    init(container, slidesPerView);
+    init(container, slidesPerView)
 
-    return () => observer.disconnect();
-  }, [setCurIndex, container, slidesPerView]);
+    return () => observer.disconnect()
+  }, [setCurIndex, container, slidesPerView])
 }

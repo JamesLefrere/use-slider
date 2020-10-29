@@ -1,1 +1,1 @@
-export default typeof window === "object";
+export default typeof window === 'object'

@@ -1,49 +1,44 @@
-import { useState, ReactElement, useCallback } from "react";
-import "./slider.scss";
-import move from "./utils/move";
-import useAutoPlay from "./hooks/useAutoPlay";
-import useEvent from "./hooks/useEvent";
-import usePagination from "./hooks/usePagination";
-import useNavigation from "./hooks/useNavigation";
-import useResponsive from "./hooks/useResponsive";
-import useInit from "./hooks/useInit";
+import {
+  useState,
+  ReactElement,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+} from 'react'
+
+import './slider.scss'
+import move from './utils/move'
+import useAutoPlay from './hooks/useAutoPlay'
+import useEvent from './hooks/useEvent'
+import usePagination from './hooks/usePagination'
+import useNavigation from './hooks/useNavigation'
+import useInit from './hooks/useInit'
+import useWindowSize from './hooks/useWindowSize'
 
 export interface SlideProps<T> {
-  ref: (instance: T) => void;
-  prev: () => void;
-  next: () => void;
-  moveTo: (index: number) => void;
+  ref: (instance: T) => void
+  prev: () => void
+  next: () => void
+  moveTo: (index: number) => void
+  curIndex: number
 }
 
-interface RawOptionProps {
-  autoPlay?: boolean;
-  initial?: number;
-  duration?: number;
-  slidesPerView?: number;
-  speed?: number;
-  loop?: boolean;
-  pagination?: boolean;
-  navigation?: boolean;
-  arrowLeft?: ReactElement;
-  arrowRight?: ReactElement;
+interface OptionProps {
+  autoPlay?: boolean
+  initial?: number
+  duration?: number
+  slidesPerView?: number
+  speed?: number
+  loop?: boolean
+  pagination?: boolean | ((index: number) => ReactElement)
+  navigation?: boolean
+  arrowLeft?: ReactElement
+  arrowRight?: ReactElement
 }
-
-export type OptionProps = RawOptionProps & {
-  responsive?: [number, RawOptionProps][];
-};
 
 export default function useSlider<T extends HTMLElement>(
-  options: OptionProps = {}
+  options: OptionProps = {},
 ): SlideProps<T> {
-  const [optionsSnapshot] = useState({
-    ...options,
-    responsive: options.responsive
-      ? options.responsive.sort((a, b) => a[0] - b[0])
-      : options.responsive
-  });
-
-  const realOptions = useResponsive(optionsSnapshot);
-
   const {
     speed = 300,
     initial = 0,
@@ -54,38 +49,32 @@ export default function useSlider<T extends HTMLElement>(
     pagination = false,
     navigation = false,
     arrowLeft,
-    arrowRight
-  } = realOptions;
+    arrowRight,
+  } = options
 
-  const [container, setContainer] = useState<T | null>(null);
+  const [container, setContainer] = useState<T | null>(null)
 
   const callbackRef = useCallback((instance: T) => {
-    setContainer(instance);
-  }, []);
+    setContainer(instance)
+  }, [])
 
-  const [curIndex, setCurIndex] = useState(initial);
+  const [curIndex, setCurIndex] = useState(initial)
 
   const prev = useCallback(() => {
-    setCurIndex(prev => {
-      if (!container) return prev;
+    setCurIndex((prev) => {
+      if (!container) return prev
 
-      if (!loop && prev === 0) return prev;
+      if (!loop && prev === 0) return prev
 
-      const slideWidth = container.clientWidth / slidesPerView;
+      const slideWidth = container.clientWidth / slidesPerView
 
-      let newIndex;
+      const childrenNum = container.querySelectorAll('.slider-slide').length
 
-      const childrenNum = container.querySelectorAll(".slider-slide").length;
+      const newIndex = prev === 0 ? childrenNum - 1 : prev - 1
 
-      if (prev === 0) {
-        newIndex = childrenNum - 1;
-      } else {
-        newIndex = prev - 1;
-      }
+      let updatedIndex = prev
 
-      let updatedIndex = prev;
-
-      while (updatedIndex <= 0) updatedIndex += childrenNum;
+      while (updatedIndex <= 0) updatedIndex += childrenNum
 
       move({
         slideWidth,
@@ -97,22 +86,22 @@ export default function useSlider<T extends HTMLElement>(
         deltaX: slideWidth,
         curIndex: updatedIndex,
         rightStart: (childrenNum - prev) * slideWidth,
-        animate: true
-      });
+        animate: true,
+      })
 
-      return newIndex;
-    });
-  }, [container, loop, slidesPerView, speed]);
+      return newIndex
+    })
+  }, [container, loop, slidesPerView, speed])
 
   const next = useCallback(() => {
-    setCurIndex(prev => {
-      if (!container) return prev;
+    setCurIndex((prev) => {
+      if (!container) return prev
 
-      const childrenNum = container.querySelectorAll(".slider-slide").length;
+      const childrenNum = container.querySelectorAll('.slider-slide').length
 
-      if (!loop && prev >= childrenNum - slidesPerView) return prev;
+      if (!loop && prev >= childrenNum - slidesPerView) return prev
 
-      const slideWidth = container.clientWidth / slidesPerView;
+      const slideWidth = container.clientWidth / slidesPerView
 
       move({
         slideWidth,
@@ -124,21 +113,21 @@ export default function useSlider<T extends HTMLElement>(
         deltaX: -slideWidth,
         curIndex: prev,
         rightStart: (childrenNum - prev) * slideWidth,
-        animate: true
-      });
+        animate: true,
+      })
 
-      return (prev + 1) % childrenNum;
-    });
-  }, [container, loop, slidesPerView, speed]);
+      return (prev + 1) % childrenNum
+    })
+  }, [container, loop, slidesPerView, speed])
 
   const moveTo = useCallback(
     (index: number) => {
-      setCurIndex(prev => {
-        if (!container) return prev;
+      setCurIndex((prev) => {
+        if (!container) return prev
 
-        const childrenNum = container.querySelectorAll(".slider-slide").length;
+        const childrenNum = container.querySelectorAll('.slider-slide').length
 
-        const slideWidth = container.clientWidth / slidesPerView;
+        const slideWidth = container.clientWidth / slidesPerView
 
         move({
           slideWidth,
@@ -150,20 +139,25 @@ export default function useSlider<T extends HTMLElement>(
           deltaX: (prev - index) * slideWidth,
           curIndex: prev,
           rightStart: (childrenNum - prev) * slideWidth,
-          animate: true
-        });
+          animate: true,
+        })
 
-        return index;
-      });
+        return index
+      })
     },
-    [container, loop, slidesPerView, speed]
-  );
+    [container, loop, slidesPerView, speed],
+  )
+
+  const windowSize = useWindowSize()
+  useLayoutEffect(() => {
+    moveTo(curIndex)
+  }, [windowSize.width])
 
   useInit({
     container,
     setCurIndex,
-    slidesPerView
-  });
+    slidesPerView,
+  })
 
   useEvent({
     container,
@@ -171,15 +165,14 @@ export default function useSlider<T extends HTMLElement>(
     speed,
     setCurIndex,
     loop,
-    slidesPerView
-  });
+    slidesPerView,
+  })
 
   useAutoPlay({
-    container,
     cb: next,
     duration,
-    autoPlay
-  });
+    autoPlay,
+  })
 
   useNavigation({
     container,
@@ -187,22 +180,21 @@ export default function useSlider<T extends HTMLElement>(
     prev,
     next,
     arrowLeft,
-    arrowRight
-  });
+    arrowRight,
+  })
 
   usePagination({
     container,
     pagination,
     curIndex,
-    moveTo
-  });
+    moveTo,
+  })
 
-  const slide = {
+  return {
     ref: callbackRef,
     prev,
     next,
-    moveTo
-  };
-
-  return slide;
+    moveTo,
+    curIndex,
+  }
 }

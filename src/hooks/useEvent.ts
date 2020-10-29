@@ -1,18 +1,18 @@
-import { useState, SetStateAction, useCallback } from "react";
-import move from "../utils/move";
-import useEventBinding from "./useEventBinding";
+import { useState, SetStateAction, useCallback } from 'react'
+import move from '../utils/move'
+import useEventBinding from './useEventBinding'
 
 function getClientX(e: MouseEvent | TouchEvent) {
-  return "touches" in e ? e.changedTouches[0].clientX : e.clientX;
+  return 'touches' in e ? e.changedTouches[0].clientX : e.clientX
 }
 
 export default function useEvent<T extends HTMLElement>(options: {
-  container: T | null;
-  curIndex: number;
-  speed: number;
-  setCurIndex: (value: SetStateAction<number>) => void;
-  loop: boolean;
-  slidesPerView: number;
+  container: T | null
+  curIndex: number
+  speed: number
+  setCurIndex: (value: SetStateAction<number>) => void
+  loop: boolean
+  slidesPerView: number
 }): void {
   const {
     container,
@@ -20,50 +20,50 @@ export default function useEvent<T extends HTMLElement>(options: {
     speed,
     setCurIndex,
     loop,
-    slidesPerView
-  } = options;
+    slidesPerView,
+  } = options
 
-  const slideWidth = container ? container.clientWidth / slidesPerView : 0;
+  const slideWidth = container ? container.clientWidth / slidesPerView : 0
 
-  const [startClientX, setStartClientX] = useState<number | null>(null);
+  const [startClientX, setStartClientX] = useState<number | null>(null)
 
   const dragStart = useCallback((e: MouseEvent | TouchEvent) => {
-    e.preventDefault();
-    setStartClientX(getClientX(e));
-  }, []);
+    e.preventDefault()
+    setStartClientX(getClientX(e))
+  }, [])
 
   const dragMove = useCallback(
     (e: MouseEvent | TouchEvent) => {
-      e.preventDefault();
+      e.preventDefault()
 
-      if (startClientX === null || !container) return;
+      if (startClientX === null || !container) return
 
-      const clientX = getClientX(e);
+      const clientX = getClientX(e)
 
-      const deltaX = clientX - startClientX;
+      const deltaX = clientX - startClientX
 
-      let movedDelta = deltaX;
-      let updatedIndex = curIndex;
+      let movedDelta = deltaX
+      let updatedIndex = curIndex
 
       if (!loop && curIndex === 0 && deltaX > 0) {
-        movedDelta = Math.pow(deltaX, 9 / 10);
+        movedDelta = Math.pow(deltaX, 9 / 10)
       }
 
-      const childrenNum = container.querySelectorAll(".slider-slide").length;
+      const childrenNum = container.querySelectorAll('.slider-slide').length
 
       if (!loop && curIndex >= childrenNum - slidesPerView && deltaX < 0) {
-        movedDelta = -Math.pow(-deltaX, 9 / 10);
+        movedDelta = -Math.pow(-deltaX, 9 / 10)
       }
 
       if (deltaX > 0 && loop) {
-        updatedIndex = curIndex - Math.floor(deltaX / slideWidth);
+        updatedIndex = curIndex - Math.floor(deltaX / slideWidth)
 
-        while (updatedIndex <= 0) updatedIndex += childrenNum;
+        while (updatedIndex <= 0) updatedIndex += childrenNum
       }
 
       if (deltaX < 0 && loop) {
         updatedIndex =
-          (curIndex + Math.floor(-deltaX / slideWidth)) % childrenNum;
+          (curIndex + Math.floor(-deltaX / slideWidth)) % childrenNum
       }
 
       move({
@@ -76,71 +76,71 @@ export default function useEvent<T extends HTMLElement>(options: {
         deltaX: movedDelta,
         curIndex: updatedIndex,
         rightStart: (childrenNum - curIndex) * slideWidth,
-        animate: false
-      });
+        animate: false,
+      })
     },
-    [container, loop, slideWidth, slidesPerView, speed, startClientX, curIndex]
-  );
+    [container, loop, slideWidth, slidesPerView, speed, startClientX, curIndex],
+  )
 
   const dragEnd = useCallback(
     (e: MouseEvent | TouchEvent) => {
-      if (!container || startClientX === null) return;
-      const clientX = getClientX(e);
+      if (!container || startClientX === null) return
+      const clientX = getClientX(e)
 
-      const deltaX = clientX - startClientX;
+      const deltaX = clientX - startClientX
 
       if (deltaX === 0) {
-        setStartClientX(null);
-        return;
+        setStartClientX(null)
+        return
       }
 
-      let movedDelta = deltaX;
-      let updatedIndex = curIndex;
-      let finalDelta = deltaX > 0 ? slideWidth - deltaX : -slideWidth - deltaX;
+      let movedDelta = deltaX
+      let updatedIndex = curIndex
+      let finalDelta = deltaX > 0 ? slideWidth - deltaX : -slideWidth - deltaX
 
-      let newIndex = curIndex;
+      let newIndex = curIndex
 
-      const childrenNum = container.querySelectorAll(".slider-slide").length;
+      const childrenNum = container.querySelectorAll('.slider-slide').length
 
       if (deltaX < 0) {
-        newIndex = (curIndex + 1) % childrenNum;
+        newIndex = (curIndex + 1) % childrenNum
       } else if (deltaX > 0) {
         if (curIndex === 0) {
-          newIndex = childrenNum - 1;
+          newIndex = childrenNum - 1
         } else {
-          newIndex = curIndex - 1;
+          newIndex = curIndex - 1
         }
       }
 
       if (!loop && curIndex === 0 && deltaX > 0) {
-        movedDelta = Math.pow(deltaX, 9 / 10);
-        finalDelta = -Math.pow(deltaX, 9 / 10);
-        newIndex = curIndex;
+        movedDelta = Math.pow(deltaX, 9 / 10)
+        finalDelta = -Math.pow(deltaX, 9 / 10)
+        newIndex = curIndex
       }
 
       if (!loop && curIndex >= childrenNum - slidesPerView && deltaX < 0) {
-        movedDelta = -Math.pow(-deltaX, 9 / 10);
-        finalDelta = Math.pow(-deltaX, 9 / 10);
-        newIndex = curIndex;
+        movedDelta = -Math.pow(-deltaX, 9 / 10)
+        finalDelta = Math.pow(-deltaX, 9 / 10)
+        newIndex = curIndex
       }
 
       if (deltaX > 0 && loop) {
-        updatedIndex = curIndex - Math.floor(deltaX / slideWidth);
+        updatedIndex = curIndex - Math.floor(deltaX / slideWidth)
 
-        while (updatedIndex <= 0) updatedIndex += childrenNum;
+        while (updatedIndex <= 0) updatedIndex += childrenNum
 
-        newIndex = updatedIndex - 1;
+        newIndex = updatedIndex - 1
 
-        finalDelta = slideWidth - (deltaX % slideWidth);
+        finalDelta = slideWidth - (deltaX % slideWidth)
       }
 
       if (deltaX < 0 && loop) {
         updatedIndex =
-          (curIndex + Math.floor(-deltaX / slideWidth)) % childrenNum;
+          (curIndex + Math.floor(-deltaX / slideWidth)) % childrenNum
 
-        newIndex = (updatedIndex + 1) % childrenNum;
+        newIndex = (updatedIndex + 1) % childrenNum
 
-        finalDelta = -slideWidth - (deltaX % slideWidth);
+        finalDelta = -slideWidth - (deltaX % slideWidth)
       }
 
       move({
@@ -153,12 +153,12 @@ export default function useEvent<T extends HTMLElement>(options: {
         deltaX: finalDelta,
         curIndex: updatedIndex,
         rightStart: (childrenNum - curIndex) * slideWidth + movedDelta,
-        animate: true
-      });
+        animate: true,
+      })
 
-      setCurIndex(newIndex);
+      setCurIndex(newIndex)
 
-      setStartClientX(null);
+      setStartClientX(null)
     },
     [
       container,
@@ -168,18 +168,18 @@ export default function useEvent<T extends HTMLElement>(options: {
       slidesPerView,
       loop,
       speed,
-      startClientX
-    ]
-  );
+      startClientX,
+    ],
+  )
 
-  useEventBinding(container, "mousedown", dragStart);
-  useEventBinding(container, "touchstart", dragStart);
+  useEventBinding(container, 'mousedown', dragStart)
+  useEventBinding(container, 'touchstart', dragStart)
 
-  useEventBinding(container, "mousemove", dragMove);
-  useEventBinding(container, "touchmove", dragMove);
+  useEventBinding(container, 'mousemove', dragMove)
+  useEventBinding(container, 'touchmove', dragMove)
 
-  useEventBinding(container, "mouseup", dragEnd);
+  useEventBinding(container, 'mouseup', dragEnd)
 
-  useEventBinding(container, "mouseleave", dragEnd);
-  useEventBinding(container, "touchend", dragEnd);
+  useEventBinding(container, 'mouseleave', dragEnd)
+  useEventBinding(container, 'touchend', dragEnd)
 }
